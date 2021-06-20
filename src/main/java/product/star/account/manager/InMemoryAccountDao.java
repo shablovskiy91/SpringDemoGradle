@@ -4,8 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class InMemoryAccountDao implements AccountDao
-{
+public class InMemoryAccountDao implements AccountDao {
+    private long accountId = 1L;
+
     private final Map<Long, Account> accountIdMap;
 
     public InMemoryAccountDao() {
@@ -13,8 +14,11 @@ public class InMemoryAccountDao implements AccountDao
     }
 
     @Override
-    public void addAccount(Account account) {
-        accountIdMap.put(account.getId(), account);
+    public Account addAccount(long amount) {
+        accountId++;
+        Account account = new Account(accountId, amount);
+        accountIdMap.put(accountId, account);
+        return account;
     }
 
     @Override

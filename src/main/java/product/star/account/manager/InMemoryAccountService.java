@@ -5,14 +5,17 @@ public class InMemoryAccountService implements AccountService {
 
     private final PhoneToAccountResolver phoneToAccountResolver;
     private final AccountDao accountDao;
+    private final BlocklistResolver blocklistResolver;
 
-    public InMemoryAccountService(PhoneToAccountResolver phoneToAccountResolver, AccountDao accountDao) {
+    public InMemoryAccountService(PhoneToAccountResolver phoneToAccountResolver, AccountDao accountDao, BlocklistResolver blocklistResolver) {
         this.phoneToAccountResolver = phoneToAccountResolver;
         this.accountDao = accountDao;
+        this.blocklistResolver = blocklistResolver;
     }
 
 
     public void transfer(long fromId, long toId, long amount) {
+        requireNotBlocked(fromId, toId);
         var accountFrom = accountDao.getAccount(fromId);
         var accountTo = accountDao.getAccount(toId);
         if (accountFrom.getAmount() < amount) {
@@ -20,6 +23,14 @@ public class InMemoryAccountService implements AccountService {
         }
         accountDao.setAmount(fromId, accountFrom.getAmount() - amount);
         accountDao.setAmount(toId, accountTo.getAmount() + amount);
+    }
+
+    void requireNotBlocked(long... accountIds) {
+        for (long accountId : accountIds) {
+            if (blocklistResolver.isBlocklisted(accountId)) {
+                throw new IllegalStateException("Account is blocked");
+            }
+        }
     }
 
 
